@@ -5,6 +5,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:sportsfilter/providers/game_model.dart';
 import 'package:sportsfilter/providers/user_model.dart';
+import 'package:sportsfilter/screens/screen_filters.dart';
 import 'package:sportsfilter/screens/screen_home.dart';
 // import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -18,27 +19,35 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return OverlaySupport(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Sports Filter Bet',
-        theme: _myTheme(),
-        home: MultiProvider(providers: [
-          ChangeNotifierProvider<UserModel>(
-            builder: (context) => UserModel(),
-          ),
-          ChangeNotifierProvider<GameModel>(
-            builder: (context) => GameModel(),
-          )
-        ], child: ScreenHome()),
-        // localizationsDelegates: [
-        //   GlobalMaterialLocalizations.delegate,
-        //   GlobalWidgetsLocalizations.delegate,
-        // ],
-        // supportedLocales: [
-        //   const Locale('en'), // English
-        //   const Locale('es', 'MX'), // Spanish
-        // ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserModel>(
+          builder: (context) => UserModel(),
+        ),
+        ChangeNotifierProvider<GameModel>(
+          builder: (context) => GameModel(),
+        )
+      ],
+      child: OverlaySupport(
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Sports Filter Bet',
+          theme: _myTheme(),
+          initialRoute: '/',
+          routes: {
+            '/': (context) => ScreenHome(),
+            '/filtros': (context) => ScreenFilters(),
+          },
+
+          // localizationsDelegates: [
+          //   GlobalMaterialLocalizations.delegate,
+          //   GlobalWidgetsLocalizations.delegate,
+          // ],
+          // supportedLocales: [
+          //   const Locale('en'), // English
+          //   const Locale('es', 'MX'), // Spanish
+          // ],
+        ),
       ),
     );
   }

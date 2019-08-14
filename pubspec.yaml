@@ -17,6 +17,10 @@ dependencies:
   overlay_support: ^1.0.0
   # Para mostrar HUD (ventanas en espera)
   modal_progress_hud: ^0.1.3
+  # Consultas Linq
+  queries: ^0.1.12
+  # Seleccion de texto (copy/paste)
+  flutter_selectable_text: ^0.3.1
   # Localizacion para idioma y fechas
   flutter_localizations:
     sdk: flutter

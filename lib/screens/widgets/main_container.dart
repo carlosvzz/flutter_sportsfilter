@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:sportsfilter/providers/game_model.dart';
+import 'package:flutter_selectable_text/flutter_selectable_text.dart';
 
 class MainContainer extends StatefulWidget {
   @override
@@ -8,14 +11,15 @@ class MainContainer extends StatefulWidget {
 }
 
 class _MainContainerState extends State<MainContainer> {
-  Future<List<String>> _listaJuegos;
+  Future<String> _listaJuegos;
+  String textoFinal;
   GameModel oGame;
 
   @override
   void initState() {
     super.initState();
     oGame = Provider.of<GameModel>(context, listen: false);
-    _listaJuegos = oGame.getList();
+    _listaJuegos = oGame.getGames();
   }
 
   @override
@@ -24,9 +28,10 @@ class _MainContainerState extends State<MainContainer> {
       alignment: Alignment.center,
       padding: const EdgeInsets.all(16.0),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Flexible(
-              child: FutureBuilder<List<String>>(
+              child: FutureBuilder<String>(
             future: _listaJuegos,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -39,28 +44,49 @@ class _MainContainerState extends State<MainContainer> {
                 if (snapshot.data == null) {
                   return new Text('No hay juegos');
                 } else {
-                  // handle the case that data is null
-                  return ListView(
-                    children: snapshot.data.map((data) {
-                      return ListTile(
-                        title: Text(data.toString()),
-                      );
-                    }).toList(),
-                  );
+                  textoFinal = snapshot.data;
+                  return SingleChildScrollView(
+                      child: SelectableText(
+                    snapshot.data,
+                    style: Theme.of(context).textTheme.body1,
+                  ));
                 }
               }
             },
           )),
-          SizedBox(height: 20.0),
-          RaisedButton(
-            child: Text("REFRESH"),
-            color: Theme.of(context).accentColor,
-            onPressed: () {
-              setState(() {
-                _listaJuegos = oGame.getList();
-              });
-            },
-          ),
+          SizedBox(height: 8.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              RaisedButton.icon(
+                icon: Icon(Icons.filter_list),
+                label: Text("Filtros"),
+                color: Theme.of(context).accentColor,
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/filtros');
+                },
+              ),
+              RaisedButton.icon(
+                icon: Icon(Icons.content_copy),
+                label: Text("Copiar"),
+                color: Theme.of(context).accentColor,
+                onPressed: () {
+                  Clipboard.setData(new ClipboardData(text: textoFinal));
+                  toast('Texto copiado!!..');
+                },
+              ),
+              RaisedButton.icon(
+                icon: Icon(Icons.refresh),
+                label: Text("Actualizar"),
+                color: Theme.of(context).accentColor,
+                onPressed: () {
+                  setState(() {
+                    _listaJuegos = oGame.getGames();
+                  });
+                },
+              ),
+            ],
+          )
         ],
       ),
     );

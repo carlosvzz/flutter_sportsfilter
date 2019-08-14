@@ -3,19 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sportsfilter/screens/widgets/main_container.dart';
 import 'package:sportsfilter/screens/widgets/my_appbar.dart';
 
-class ScreenHome extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return _ScreenHomeState();
-  }
-}
-
-class _ScreenHomeState extends State<ScreenHome> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
+class ScreenHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

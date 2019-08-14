@@ -67,11 +67,25 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_selectable_text:
+    dependency: "direct main"
+    description:
+      name: flutter_selectable_text
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
     source: sdk
     version: "0.0.0"
+  function_types:
+    dependency: transitive
+    description:
+      name: function_types
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   intl:
     dependency: transitive
     description:
@@ -128,6 +142,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0+1"
+  queries:
+    dependency: "direct main"
+    description:
+      name: queries
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.12"
   quiver:
     dependency: transitive
     description:
@@ -198,4 +219,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.2.2 <3.0.0"
-  flutter: ">=1.5.0 <2.0.0"
+  flutter: ">=1.7.8 <2.0.0"

@@ -2,22 +2,31 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:queries/collections.dart';
 import 'package:sportsfilter/models/custom_date.dart';
 import 'package:sportsfilter/models/game.dart';
 import 'package:sportsfilter/models/game_bet.dart';
 
+enum TIMEOFDAY { ALL, MORNING, NIGHT }
+enum ORDERBY { MAXVALUE, DATETIME, TYPEBET }
+
 class GameModel with ChangeNotifier {
+  int numRegs;
   CustomDate dateIni;
   CustomDate dateFin;
+  List<String> filterSport = [];
+  List<String> filterTypeBet = [];
+  TIMEOFDAY filterTimeofDay = TIMEOFDAY.ALL;
+  ORDERBY filterOrderBy = ORDERBY.MAXVALUE;
   bool isLoading = false;
   List<GameBet> _listaBet;
 
   GameModel() {
-    dateIni = new CustomDate(DateTime.now());
+    dateIni = new CustomDate(DateTime.now().subtract(Duration(days: 1)));
     dateFin = new CustomDate(DateTime.now());
   }
 
-  Future<List<String>> getList() async {
+  Future<String> getGames() async {
     try {
       CollectionReference collectionRef =
           Firestore.instance.collection("games");
@@ -29,8 +38,8 @@ class GameModel with ChangeNotifier {
           .orderBy('date')
           .orderBy('time')
           .getDocuments();
-
-      Future<List<String>> listaFiltrada = _filtrarLista(collection.documents);
+//Filtrar lista
+      Future<String> listaFiltrada = _filtrarLista(collection.documents);
 
       return listaFiltrada;
     } catch (e) {
@@ -38,7 +47,7 @@ class GameModel with ChangeNotifier {
     }
   }
 
-  Future<List<String>> _filtrarLista(List<DocumentSnapshot> documentos) async {
+  Future<String> _filtrarLista(List<DocumentSnapshot> documentos) async {
     List<String> listaFiltrada = [];
     _listaBet = [];
 
@@ -50,16 +59,17 @@ class GameModel with ChangeNotifier {
 
     // Armar lista de string
     if (_listaBet != null) {
-      List<GameBet> listaOrdenada = _listaBet
-        ..sort((a, b) => a.minValue.compareTo(b.minValue))
-        ..sort((a, b) => b.maxValue.compareTo(a.maxValue));
+      var query = Collection(_listaBet)
+          .orderBy((f) => f.minValue)
+          .thenByDescending((f) => f.maxValue);
 
-      listaFiltrada = listaOrdenada.map((bet) {
+      listaFiltrada = query.asIterable().map((bet) {
         return bet.label;
       }).toList();
     }
+    numRegs = listaFiltrada.length;
 
-    return listaFiltrada;
+    return numRegs.toString() + '\n' + listaFiltrada.join('\n');
   }
 
   void _revisarGame(Game oGame) {
@@ -144,10 +154,10 @@ class GameModel with ChangeNotifier {
       if (oGame.idSport.toLowerCase() == 'nba' ||
           oGame.idSport.toLowerCase() == 'nfl') {
         etiquetaJuego = 'sp+/-';
-        gameBet.typeBet = eTypeBet.SPREAD;
+        gameBet.typeBet = TYPEBET.SPREAD;
       } else {
         etiquetaJuego = 'ml';
-        gameBet.typeBet = eTypeBet.ML;
+        gameBet.typeBet = TYPEBET.ML;
       }
 
       textoFinal = '$datoJuego $etiquetaJuego ';
@@ -173,7 +183,7 @@ class GameModel with ChangeNotifier {
           textoFinal += teamHome;
         }
       }
-      textoFinal += ' ${maxValue.toString()}.${minValue.toString()} | ';
+      textoFinal += '(${maxValue.toString()}.${minValue.toString()}) | ';
       //Agregar a lista de bets
       gameBet.label = textoFinal;
       _listaBet.add(gameBet);
@@ -186,20 +196,19 @@ class GameModel with ChangeNotifier {
       gameBet.date = oGame.date;
       gameBet.time = oGame.time;
       gameBet.maxValue = oGame.countOverUnder.abs();
-      // MIN solo para orden sera 3 = 2, 4=2, 5+ - 0
-      if (gameBet.maxValue == 3) {
-        gameBet.minValue = 2;
-      } else if (gameBet.maxValue == 4) {
+      // MIN solo para orden sera 3y4 = 1, 5+ - 0
+      if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
         gameBet.minValue = 1;
       } else {
         gameBet.minValue = 0;
       }
 
-      gameBet.typeBet = eTypeBet.OVERUNDER;
+      gameBet.typeBet = TYPEBET.OVERUNDER;
 
       textoFinal = datoJuego + ' ';
       textoFinal += (oGame.countOverUnder > 0) ? 'over ' : 'under ';
-      textoFinal += ' ${gameBet.maxValue.toString()} | ';
+      textoFinal +=
+          '(${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
       //Agregar a lista de bets
       gameBet.label = textoFinal;
       _listaBet.add(gameBet);
@@ -212,10 +221,8 @@ class GameModel with ChangeNotifier {
       gameBet.date = oGame.date;
       gameBet.time = oGame.time;
       gameBet.maxValue = oGame.countExtra.abs();
-      // MIN solo para orden sera 3 = 2, 4=2, 5+ - 0
-      if (gameBet.maxValue == 3) {
-        gameBet.minValue = 2;
-      } else if (gameBet.maxValue == 4) {
+      // MIN solo para orden sera 3y4 = 1, 5+ - 0
+      if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
         gameBet.minValue = 1;
       } else {
         gameBet.minValue = 0;
@@ -224,16 +231,17 @@ class GameModel with ChangeNotifier {
       textoFinal = datoJuego + ' ';
 
       if (esSoccer) {
-        gameBet.typeBet = eTypeBet.BTTS;
+        gameBet.typeBet = TYPEBET.BTTS;
         textoFinal += ' btts ';
         textoFinal += (oGame.countExtra > 0) ? 'Y' : 'N';
       } else {
-        gameBet.typeBet = eTypeBet.ML;
+        gameBet.typeBet = TYPEBET.ML;
         textoFinal += ' ml ';
         textoFinal += (oGame.countExtra > 0) ? teamAway : teamHome;
       }
 
-      textoFinal += ' ${gameBet.maxValue.toString()} | ';
+      textoFinal +=
+          '(${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
       //Agregar a lista de bets
       gameBet.label = textoFinal;
       _listaBet.add(gameBet);
