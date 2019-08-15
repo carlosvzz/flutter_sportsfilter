@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
-import 'package:sportsfilter/providers/game_model.dart';
+import 'package:sportsfilter/providers/app_model.dart';
 import 'package:flutter_selectable_text/flutter_selectable_text.dart';
 
 class MainContainer extends StatefulWidget {
@@ -13,12 +13,12 @@ class MainContainer extends StatefulWidget {
 class _MainContainerState extends State<MainContainer> {
   Future<String> _listaJuegos;
   String textoFinal;
-  GameModel oGame;
+  AppModel oGame;
 
   @override
   void initState() {
     super.initState();
-    oGame = Provider.of<GameModel>(context, listen: false);
+    oGame = Provider.of<AppModel>(context, listen: false);
     _listaJuegos = oGame.getGames();
   }
 

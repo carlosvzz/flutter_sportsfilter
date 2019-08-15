@@ -10,20 +10,25 @@ import 'package:sportsfilter/models/game_bet.dart';
 enum TIMEOFDAY { ALL, MORNING, NIGHT }
 enum ORDERBY { MAXVALUE, DATETIME, TYPEBET }
 
-class GameModel with ChangeNotifier {
+class AppModel with ChangeNotifier {
   int numRegs;
   CustomDate dateIni;
   CustomDate dateFin;
-  List<String> filterSport = [];
-  List<String> filterTypeBet = [];
-  TIMEOFDAY filterTimeofDay = TIMEOFDAY.ALL;
-  ORDERBY filterOrderBy = ORDERBY.MAXVALUE;
-  bool isLoading = false;
+  List<String> filterSport;
+  List<String> filterTypeBet;
+  TIMEOFDAY filterTimeofDay;
+  ORDERBY filterOrderBy;
+  bool isLoading;
   List<GameBet> _listaBet;
 
-  GameModel() {
+  AppModel() {
     dateIni = new CustomDate(DateTime.now().subtract(Duration(days: 1)));
     dateFin = new CustomDate(DateTime.now());
+    filterSport = [];
+    filterTypeBet = [];
+    filterTimeofDay = TIMEOFDAY.ALL;
+    filterOrderBy = ORDERBY.MAXVALUE;
+    isLoading = false;
   }
 
   Future<String> getGames() async {

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
-import 'package:sportsfilter/providers/game_model.dart';
+import 'package:sportsfilter/providers/app_model.dart';
 import 'package:sportsfilter/providers/user_model.dart';
 import 'package:sportsfilter/screens/screen_filters.dart';
 import 'package:sportsfilter/screens/screen_home.dart';
@@ -24,8 +24,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<UserModel>(
           builder: (context) => UserModel(),
         ),
-        ChangeNotifierProvider<GameModel>(
-          builder: (context) => GameModel(),
+        ChangeNotifierProvider<AppModel>(
+          builder: (context) => AppModel(),
         )
       ],
       child: OverlaySupport(
@@ -76,6 +76,8 @@ ThemeData _myTheme() {
         ),
         body2: TextStyle(
             fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white),
+        caption: TextStyle(
+            fontSize: 19.0, fontWeight: FontWeight.bold, color: myAccentColor),
         display1: TextStyle(
             fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.white70),
         display2: TextStyle(fontSize: 16.0, color: myAccentColor),
