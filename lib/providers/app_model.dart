@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:queries/collections.dart';
+import 'package:sportsfilter/helpers/enums.dart';
 import 'package:sportsfilter/models/custom_date.dart';
 import 'package:sportsfilter/models/game.dart';
 import 'package:sportsfilter/models/game_bet.dart';
-
-enum TIMEOFDAY { ALL, MORNING, NIGHT }
-enum ORDERBY { MAXVALUE, DATETIME, TYPEBET }
 
 class AppModel with ChangeNotifier {
   int numRegs;
@@ -16,18 +14,18 @@ class AppModel with ChangeNotifier {
   CustomDate dateFin;
   List<String> filterSport;
   List<String> filterTypeBet;
-  TIMEOFDAY filterTimeofDay;
-  ORDERBY filterOrderBy;
+  TIME_OF_DAY filterTimeofDay;
+  ORDER_BY filterOrderBy;
   bool isLoading;
   List<GameBet> _listaBet;
 
   AppModel() {
-    dateIni = new CustomDate(DateTime.now().subtract(Duration(days: 1)));
+    dateIni = new CustomDate(DateTime.now());
     dateFin = new CustomDate(DateTime.now());
     filterSport = [];
     filterTypeBet = [];
-    filterTimeofDay = TIMEOFDAY.ALL;
-    filterOrderBy = ORDERBY.MAXVALUE;
+    filterTimeofDay = TIME_OF_DAY.All;
+    filterOrderBy = ORDER_BY.MaxValue;
     isLoading = false;
   }
 
@@ -155,14 +153,13 @@ class AppModel with ChangeNotifier {
       gameBet.time = oGame.time;
       gameBet.maxValue = maxValue;
       gameBet.minValue = minValue;
+      gameBet.typeBet = TYPE_BET.Main;
 
       if (oGame.idSport.toLowerCase() == 'nba' ||
           oGame.idSport.toLowerCase() == 'nfl') {
         etiquetaJuego = 'sp+/-';
-        gameBet.typeBet = TYPEBET.SPREAD;
       } else {
         etiquetaJuego = 'ml';
-        gameBet.typeBet = TYPEBET.ML;
       }
 
       textoFinal = '$datoJuego $etiquetaJuego ';
@@ -208,7 +205,7 @@ class AppModel with ChangeNotifier {
         gameBet.minValue = 0;
       }
 
-      gameBet.typeBet = TYPEBET.OVERUNDER;
+      gameBet.typeBet = TYPE_BET.OverUnder;
 
       textoFinal = datoJuego + ' ';
       textoFinal += (oGame.countOverUnder > 0) ? 'over ' : 'under ';
@@ -234,13 +231,11 @@ class AppModel with ChangeNotifier {
       }
 
       textoFinal = datoJuego + ' ';
-
+      gameBet.typeBet = TYPE_BET.Extra;
       if (esSoccer) {
-        gameBet.typeBet = TYPEBET.BTTS;
         textoFinal += ' btts ';
         textoFinal += (oGame.countExtra > 0) ? 'Y' : 'N';
       } else {
-        gameBet.typeBet = TYPEBET.ML;
         textoFinal += ' ml ';
         textoFinal += (oGame.countExtra > 0) ? teamAway : teamHome;
       }

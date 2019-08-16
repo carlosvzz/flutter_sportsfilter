@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sportsfilter/helpers/enums.dart';
 import 'package:sportsfilter/providers/app_model.dart';
 import 'package:sportsfilter/screens/widgets/multiselect_chip.dart';
 
@@ -9,12 +10,17 @@ class FilterContainer extends StatefulWidget {
 }
 
 class _FilterContainerState extends State<FilterContainer> {
-  // Filtro enum TIMEOFDAY { ALL, MORNING, NIGHT }
-  List<String> _timeOfDay = ['<All>', 'Morning', 'Night'];
-  String _selTimeOfDay;
-  // Order BY enum ORDERBY { MAXVALUE, DATETIME, TYPEBET }
-  List<String> _orderBy = ['Value', 'Date', 'Bet'];
-  String _selOrderBy;
+  List<TIME_OF_DAY> _listaTimeOfDay;
+  List<ORDER_BY> _listaOrderBy;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _listaTimeOfDay = TIME_OF_DAY.values.toList();
+    _listaOrderBy = ORDER_BY.values.toList();
+  }
+
   // Type of Bets enum TYPEBET { ML, SPREAD, OVERUNDER, BTTS }
   List<String> _typeBets = ['ML', 'Spread', 'Over/Under', 'BTTS'];
   List<String> _seltypeBets = List();
@@ -101,31 +107,20 @@ class _FilterContainerState extends State<FilterContainer> {
               LabelContainer('Order by'),
               DropdownButton(
                 hint: Text('Select option'), // Not necessary for Option 1
-                value: _selOrderBy,
+                value: enumToString(appModel.filterOrderBy),
                 onChanged: (newValue) {
-                  switch (newValue) {
-                    case 'Value':
-                      appModel.filterOrderBy = ORDERBY.MAXVALUE;
-                      break;
-                    case 'Date':
-                      appModel.filterOrderBy = ORDERBY.DATETIME;
-                      break;
-                    case 'Bet':
-                      appModel.filterOrderBy = ORDERBY.TYPEBET;
-                      break;
-                  }
-
                   setState(() {
-                    _selOrderBy = newValue;
+                    appModel.filterOrderBy =
+                        enumFromString(newValue, ORDER_BY.values);
                   });
                 },
-                items: _orderBy.map((order) {
+                items: _listaOrderBy.map((order) {
                   return DropdownMenuItem(
                     child: Text(
-                      order,
+                      enumToString(order),
                       style: Theme.of(context).textTheme.display1,
                     ),
-                    value: order,
+                    value: enumToString(order),
                   );
                 }).toList(),
               ),
@@ -138,30 +133,21 @@ class _FilterContainerState extends State<FilterContainer> {
               LabelContainer('Time of Day'),
               DropdownButton(
                 hint: Text('Select option'), // Not necessary for Option 1
-                value: _selTimeOfDay,
+                value: enumToString(appModel.filterTimeofDay),
                 onChanged: (newValue) {
-                  switch (newValue) {
-                    case '<All>':
-                      appModel.filterTimeofDay = TIMEOFDAY.ALL;
-                      break;
-                    case 'Morning':
-                      appModel.filterTimeofDay = TIMEOFDAY.MORNING;
-                      break;
-                    case 'Night':
-                      appModel.filterTimeofDay = TIMEOFDAY.NIGHT;
-                      break;
-                  }
+                  print('Valor es $newValue');
                   setState(() {
-                    _selTimeOfDay = newValue;
+                    appModel.filterTimeofDay = enumFromString<TIME_OF_DAY>(
+                        newValue, TIME_OF_DAY.values);
                   });
                 },
-                items: _timeOfDay.map((time) {
+                items: _listaTimeOfDay.map((time) {
                   return DropdownMenuItem(
                     child: Text(
-                      time,
+                      enumToString(time),
                       style: Theme.of(context).textTheme.display1,
                     ),
-                    value: time,
+                    value: enumToString(time),
                   );
                 }).toList(),
               ),

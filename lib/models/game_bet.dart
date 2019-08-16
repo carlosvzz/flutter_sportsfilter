@@ -1,10 +1,10 @@
-enum TYPEBET { ML, SPREAD, OVERUNDER, BTTS }
+import 'package:sportsfilter/helpers/enums.dart';
 
 class GameBet {
   String idSport;
   DateTime date;
   String time; // formato 24H 00:00
-  TYPEBET typeBet;
+  TYPE_BET typeBet;
   String label;
   int maxValue = 0;
   int minValue = 0;
