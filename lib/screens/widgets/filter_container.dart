@@ -10,8 +10,10 @@ class FilterContainer extends StatefulWidget {
 }
 
 class _FilterContainerState extends State<FilterContainer> {
-  List<TIME_OF_DAY> _listaTimeOfDay;
   List<ORDER_BY> _listaOrderBy;
+  List<TIME_OF_DAY> _listaTimeOfDay;
+  List<TYPE_BET> _listBets;
+  List<TYPE_SPORTS> _listSports;
 
   @override
   void initState() {
@@ -19,11 +21,9 @@ class _FilterContainerState extends State<FilterContainer> {
 
     _listaTimeOfDay = TIME_OF_DAY.values.toList();
     _listaOrderBy = ORDER_BY.values.toList();
+    _listBets = TYPE_BET.values.toList();
+    _listSports = TYPE_SPORTS.values.toList();
   }
-
-  // Type of Bets enum TYPEBET { ML, SPREAD, OVERUNDER, BTTS }
-  List<String> _typeBets = ['ML', 'Spread', 'Over/Under', 'BTTS'];
-  List<String> _seltypeBets = List();
 
   Future<DateTime> _selectDate(
       BuildContext context, DateTime currentDate) async {
@@ -43,23 +43,65 @@ class _FilterContainerState extends State<FilterContainer> {
   }
 
   // This function will open the dialog
-  _showMultiSelectDialog() {
+  _showMultiSelectDialog(AppModel app, bool isBets) {
+    List<String> listaAux;
+    List<String> listaSelAux;
+
+    if (isBets) {
+      listaAux = _listBets.map((b) {
+        return enumToString(b);
+      }).toList();
+
+      listaSelAux = app.filterTypeBet.map((b) {
+        return enumToString(b);
+      }).toList();
+    } else {
+      // Sports
+      listaAux = _listSports.map((b) {
+        return enumToString(b);
+      }).toList();
+
+      listaSelAux = app.filterSport.map((b) {
+        return enumToString(b);
+      }).toList();
+    }
+
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Type of Bet"),
+            title: Text(
+              isBets ? "Type of Bet" : "Sports",
+              style: Theme.of(context).accentTextTheme.body1,
+            ),
             content: MultiSelectChip(
-              _typeBets,
+              listaAux,
+              listaSelAux,
               onSelectionChanged: (selectedList) {
+                if (isBets) {
+                  app.filterTypeBet = [];
+                } else {
+                  app.filterSport = [];
+                }
+
                 setState(() {
-                  _seltypeBets = selectedList;
+                  selectedList.forEach((i) {
+                    if (isBets) {
+                      app.filterTypeBet.add(enumFromString(i, TYPE_BET.values));
+                    } else {
+                      app.filterSport
+                          .add(enumFromString(i, TYPE_SPORTS.values));
+                    }
+                  });
                 });
               },
             ),
             actions: <Widget>[
               FlatButton(
-                child: Text("OK"),
+                child: Text(
+                  "OK",
+                  style: Theme.of(context).accentTextTheme.body1,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               )
             ],
@@ -163,22 +205,38 @@ class _FilterContainerState extends State<FilterContainer> {
                 child: RaisedButton(
                   child: Text('Bet Types'),
                   onPressed: () {
-                    _showMultiSelectDialog();
+                    _showMultiSelectDialog(appModel, true);
                   },
                 ),
               ),
-              Text(_seltypeBets.join(" , ")),
+              Text(appModel.filterTypeBet
+                  .map((i) {
+                    return enumToString(i);
+                  })
+                  .toList()
+                  .join(" , ")),
             ],
           ),
 
           ///Sports
           Row(
             children: <Widget>[
-              LabelContainer('Sports'),
-              Placeholder(
-                fallbackHeight: 30,
-                fallbackWidth: 200,
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                width: 130,
+                child: RaisedButton(
+                  child: Text('Sports'),
+                  onPressed: () {
+                    _showMultiSelectDialog(appModel, false);
+                  },
+                ),
               ),
+              Text(appModel.filterSport
+                  .map((i) {
+                    return enumToString(i);
+                  })
+                  .toList()
+                  .join(" , ")),
             ],
           ),
         ],

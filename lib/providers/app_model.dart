@@ -12,8 +12,8 @@ class AppModel with ChangeNotifier {
   int numRegs;
   CustomDate dateIni;
   CustomDate dateFin;
-  List<String> filterSport;
-  List<String> filterTypeBet;
+  List<TYPE_SPORTS> filterSport;
+  List<TYPE_BET> filterTypeBet;
   TIME_OF_DAY filterTimeofDay;
   ORDER_BY filterOrderBy;
   bool isLoading;
@@ -62,17 +62,70 @@ class AppModel with ChangeNotifier {
 
     // Armar lista de string
     if (_listaBet != null) {
-      var query = Collection(_listaBet)
-          .orderBy((f) => f.minValue)
-          .thenByDescending((f) => f.maxValue);
+      // Ordenar segun opcion seleccionada
 
-      listaFiltrada = query.asIterable().map((bet) {
-        return bet.label;
-      }).toList();
+      switch (this.filterOrderBy) {
+        case ORDER_BY.MaxValue:
+          var query = Collection(_listaBet)
+              .orderBy((f) => f.minValue)
+              .thenByDescending((f) => f.maxValue);
+
+          listaFiltrada = query.asIterable().map((bet) {
+            return bet.label;
+          }).toList();
+          break;
+
+        case ORDER_BY.DateTime:
+          var query = Collection(_listaBet)
+              .orderBy((f) => f.date)
+              .thenBy((f) => f.time);
+          listaFiltrada = query.asIterable().map((bet) {
+            return bet.label;
+          }).toList();
+          break;
+
+        case ORDER_BY.TypeBet:
+          var query = Collection(_listaBet)
+              .orderBy((f) => enumToString(f.typeBet))
+              .thenBy((f) => f.minValue)
+              .thenByDescending((f) => f.maxValue);
+          listaFiltrada = query.asIterable().map((bet) {
+            return bet.label;
+          }).toList();
+          break;
+      }
     }
+
     numRegs = listaFiltrada.length;
 
-    return numRegs.toString() + '\n' + listaFiltrada.join('\n');
+    String listaBet = this
+        .filterTypeBet
+        .map((i) {
+          return enumToString(i);
+        })
+        .toList()
+        .join(" , ");
+
+    String listaSport = this
+        .filterSport
+        .map((i) {
+          return enumToString(i);
+        })
+        .toList()
+        .join(" , ");
+
+    String encabezado;
+    encabezado = '#Regs =' + numRegs.toString();
+    encabezado +=
+        '\nFecha = ${this.dateIni.getLabel} - ${this.dateFin.getLabel}';
+    encabezado +=
+        '\n Orden = ${enumToString(this.filterOrderBy)}, Time = ${enumToString(this.filterTimeofDay)}';
+    encabezado +=
+        '\n Bet Type = ${this.filterTypeBet.isEmpty ? "TODOS" : listaBet}';
+    encabezado +=
+        '\n Sports = ${this.filterSport.isEmpty ? "TODOS" : listaSport}';
+
+    return encabezado + '\n\n' + listaFiltrada.join('\n');
   }
 
   void _revisarGame(Game oGame) {
@@ -81,170 +134,232 @@ class AppModel with ChangeNotifier {
     String etiquetaJuego;
     bool esSoccer;
     bool hayDifWin;
+    bool continua;
     int teamGanador;
     int maxValue;
     int minValue;
 
-    esSoccer = oGame.idSport.toLowerCase().contains('soccer');
-    etiquetaJuego =
-        esSoccer ? oGame.idSport.replaceAll('Soccer', 'FB') : oGame.idSport;
-
-    String teamAway = oGame.awayTeam.abbreviation.padRight(3);
-    String teamHome = oGame.homeTeam.abbreviation.padRight(3);
-
-    if (esSoccer) {
-      datoJuego = '$etiquetaJuego (${oGame.time}) $teamHome v $teamAway > ';
-    } else {
-      // US Games
-      datoJuego = '$etiquetaJuego (${oGame.time}) $teamAway @ $teamHome >';
+    //Revisar si cumple con Tiempo
+    continua = true;
+    if (this.filterTimeofDay == TIME_OF_DAY.Morning) {
+      continua = (int.parse(oGame.time.substring(0, 2)) < 14);
+    } else if (this.filterTimeofDay == TIME_OF_DAY.Night) {
+      continua = (int.parse(oGame.time.substring(0, 2)) >= 14);
     }
 
-    ///////////////////////// MAIN //////////////////////////////
-    teamGanador = -1;
-    hayDifWin = false;
-
-    if (esSoccer) {
-      // DIFERENCIA CON MAS DE +2 VOTOS VS EL RESTO
-      // Gana visitante
-      if (oGame.countAway - (oGame.countHome + oGame.countDraw) > 2) {
-        teamGanador = 2;
-        hayDifWin = true;
-        maxValue = oGame.countAway;
-        minValue = oGame.countHome + oGame.countDraw;
-      }
-      // Gana Local
-      if (!hayDifWin &&
-          (oGame.countHome - (oGame.countAway + oGame.countDraw) > 2)) {
-        teamGanador = 1;
-        hayDifWin = true;
-        maxValue = oGame.countHome;
-        minValue = oGame.countAway + oGame.countDraw;
-      }
-      // EMPATE
-      if (!hayDifWin &&
-          (oGame.countDraw - (oGame.countAway + oGame.countHome) > 2)) {
-        teamGanador = 0;
-        hayDifWin = true;
-        maxValue = oGame.countDraw;
-        minValue = oGame.countHome + oGame.countDraw;
-      }
-    } else {
-//US Games > Gana cualquiera con +2 diferencia (visitante o local)
-      // Visitante
-      if ((oGame.countAway - oGame.countHome) > 2) {
-        teamGanador = 2;
-        hayDifWin = true;
-        maxValue = oGame.countAway;
-        minValue = oGame.countHome;
-      }
-      // Gana Local
-      if (!hayDifWin && (oGame.countHome - oGame.countAway) > 2) {
-        teamGanador = 1;
-        hayDifWin = true;
-        maxValue = oGame.countHome;
-        minValue = oGame.countAway;
+    // Revisar si cumple con el Deporte
+    if (continua && this.filterSport.length > 0) {
+      switch (oGame.idSport) {
+        case 'NFL':
+          continua = this.filterSport.contains(TYPE_SPORTS.NFL);
+          break;
+        case 'NBA':
+          continua = this.filterSport.contains(TYPE_SPORTS.NBA);
+          break;
+        case 'NHL':
+          continua = this.filterSport.contains(TYPE_SPORTS.NHL);
+          break;
+        case 'MLB':
+          continua = this.filterSport.contains(TYPE_SPORTS.MLB);
+          break;
+        default:
+          //Soccer
+          continua = this.filterSport.contains(TYPE_SPORTS.SOCCER);
       }
     }
 
-    if (hayDifWin) {
-      GameBet gameBet = new GameBet();
-      gameBet.idSport = oGame.idSport;
-      gameBet.date = oGame.date;
-      gameBet.time = oGame.time;
-      gameBet.maxValue = maxValue;
-      gameBet.minValue = minValue;
-      gameBet.typeBet = TYPE_BET.Main;
+    if (continua) {
+      esSoccer = oGame.idSport.toLowerCase().contains('soccer');
+      etiquetaJuego =
+          esSoccer ? oGame.idSport.replaceAll('Soccer', 'FB') : oGame.idSport;
 
-      if (oGame.idSport.toLowerCase() == 'nba' ||
-          oGame.idSport.toLowerCase() == 'nfl') {
-        etiquetaJuego = 'sp+/-';
-      } else {
-        etiquetaJuego = 'ml';
-      }
+      String teamAway = oGame.awayTeam.abbreviation.padRight(3);
+      String teamHome = oGame.homeTeam.abbreviation.padRight(3);
 
-      textoFinal = '$datoJuego $etiquetaJuego ';
       if (esSoccer) {
-        switch (teamGanador) {
-          case 0:
-            textoFinal += "X";
-            break;
-          case 1:
-            textoFinal += teamHome;
-            break;
-          case 2:
-            textoFinal += teamAway;
-            break;
-          default:
-        }
+        datoJuego = '$etiquetaJuego (${oGame.time}) $teamHome v $teamAway > ';
       } else {
         // US Games
+        datoJuego = '$etiquetaJuego (${oGame.time}) $teamAway @ $teamHome >';
+      }
+
+      ///////////////////////// MAIN //////////////////////////////
+      teamGanador = -1;
+      hayDifWin = false;
+
+      if (esSoccer) {
+        // DIFERENCIA CON MAS DE +2 VOTOS VS EL RESTO
+        // Gana visitante
+        if (oGame.countAway - (oGame.countHome + oGame.countDraw) > 2) {
+          teamGanador = 2;
+          hayDifWin = true;
+          maxValue = oGame.countAway;
+          minValue = oGame.countHome + oGame.countDraw;
+        }
+        // Gana Local
+        if (!hayDifWin &&
+            (oGame.countHome - (oGame.countAway + oGame.countDraw) > 2)) {
+          teamGanador = 1;
+          hayDifWin = true;
+          maxValue = oGame.countHome;
+          minValue = oGame.countAway + oGame.countDraw;
+        }
+        // EMPATE
+        if (!hayDifWin &&
+            (oGame.countDraw - (oGame.countAway + oGame.countHome) > 2)) {
+          teamGanador = 0;
+          hayDifWin = true;
+          maxValue = oGame.countDraw;
+          minValue = oGame.countHome + oGame.countDraw;
+        }
+      } else {
+//US Games > Gana cualquiera con +2 diferencia (visitante o local)
         // Visitante
-        if (teamGanador == 2) {
-          textoFinal += teamAway;
-        } else {
-          textoFinal += teamHome;
+        if ((oGame.countAway - oGame.countHome) > 2) {
+          teamGanador = 2;
+          hayDifWin = true;
+          maxValue = oGame.countAway;
+          minValue = oGame.countHome;
+        }
+        // Gana Local
+        if (!hayDifWin && (oGame.countHome - oGame.countAway) > 2) {
+          teamGanador = 1;
+          hayDifWin = true;
+          maxValue = oGame.countHome;
+          minValue = oGame.countAway;
         }
       }
-      textoFinal += '(${maxValue.toString()}.${minValue.toString()}) | ';
-      //Agregar a lista de bets
-      gameBet.label = textoFinal;
-      _listaBet.add(gameBet);
-    }
 
-    /////// OVER / UNDER ///////////////////////////////////////////////////////////////////////////
-    if (oGame.countOverUnder.abs() > 2) {
-      GameBet gameBet = new GameBet();
-      gameBet.idSport = oGame.idSport;
-      gameBet.date = oGame.date;
-      gameBet.time = oGame.time;
-      gameBet.maxValue = oGame.countOverUnder.abs();
-      // MIN solo para orden sera 3y4 = 1, 5+ - 0
-      if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
-        gameBet.minValue = 1;
-      } else {
-        gameBet.minValue = 0;
+      if (hayDifWin) {
+        GameBet gameBet = new GameBet();
+        gameBet.idSport = oGame.idSport;
+        gameBet.date = oGame.date;
+        gameBet.time = oGame.time;
+        gameBet.maxValue = maxValue;
+        gameBet.minValue = minValue;
+
+        if (oGame.idSport.toLowerCase() == 'nba' ||
+            oGame.idSport.toLowerCase() == 'nfl') {
+          etiquetaJuego = 'sp+/-';
+          gameBet.typeBet = TYPE_BET.Spread;
+        } else {
+          etiquetaJuego = 'ml';
+          gameBet.typeBet = TYPE_BET.ML;
+        }
+
+        textoFinal = '$datoJuego $etiquetaJuego ';
+        if (esSoccer) {
+          switch (teamGanador) {
+            case 0:
+              textoFinal += "X";
+              break;
+            case 1:
+              textoFinal += teamHome;
+              break;
+            case 2:
+              textoFinal += teamAway;
+              break;
+            default:
+          }
+        } else {
+          // US Games
+          // Visitante
+          if (teamGanador == 2) {
+            textoFinal += teamAway;
+          } else {
+            textoFinal += teamHome;
+          }
+        }
+        textoFinal += ' (${maxValue.toString()}.${minValue.toString()}) | ';
+        //Agregar a lista de bets
+        gameBet.label = textoFinal;
+
+        if (oGame.idSport.toLowerCase() == 'nba' ||
+            oGame.idSport.toLowerCase() == 'nfl') {
+          if (this.filterTypeBet.isEmpty ||
+              this.filterTypeBet.contains(TYPE_BET.Spread)) {
+            _listaBet.add(gameBet);
+          }
+        } else {
+          if (this.filterTypeBet.isEmpty ||
+              this.filterTypeBet.contains(TYPE_BET.ML)) {
+            _listaBet.add(gameBet);
+          }
+        }
       }
 
-      gameBet.typeBet = TYPE_BET.OverUnder;
+      /////// OVER / UNDER ///////////////////////////////////////////////////////////////////////////
+      if (oGame.countOverUnder.abs() > 2) {
+        GameBet gameBet = new GameBet();
+        gameBet.idSport = oGame.idSport;
+        gameBet.date = oGame.date;
+        gameBet.time = oGame.time;
+        gameBet.maxValue = oGame.countOverUnder.abs();
+        // MIN solo para orden sera 3y4 = 1, 5+ - 0
+        if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
+          gameBet.minValue = 1;
+        } else {
+          gameBet.minValue = 0;
+        }
 
-      textoFinal = datoJuego + ' ';
-      textoFinal += (oGame.countOverUnder > 0) ? 'over ' : 'under ';
-      textoFinal +=
-          '(${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
-      //Agregar a lista de bets
-      gameBet.label = textoFinal;
-      _listaBet.add(gameBet);
-    }
+        gameBet.typeBet = TYPE_BET.OverUnder;
 
-    /////// EXTRA = ML (US) / BTTS (SOCCER) ///////////////////////////////////////////////////////////////////////////
-    if (oGame.countExtra.abs() > 2) {
-      GameBet gameBet = new GameBet();
-      gameBet.idSport = oGame.idSport;
-      gameBet.date = oGame.date;
-      gameBet.time = oGame.time;
-      gameBet.maxValue = oGame.countExtra.abs();
-      // MIN solo para orden sera 3y4 = 1, 5+ - 0
-      if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
-        gameBet.minValue = 1;
-      } else {
-        gameBet.minValue = 0;
+        textoFinal = datoJuego + ' ';
+        textoFinal += (oGame.countOverUnder > 0) ? 'over ' : 'under ';
+        textoFinal +=
+            ' (${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
+        //Agregar a lista de bets
+        gameBet.label = textoFinal;
+
+        if (this.filterTypeBet.isEmpty ||
+            this.filterTypeBet.contains(TYPE_BET.OverUnder)) {
+          _listaBet.add(gameBet);
+        }
       }
 
-      textoFinal = datoJuego + ' ';
-      gameBet.typeBet = TYPE_BET.Extra;
-      if (esSoccer) {
-        textoFinal += ' btts ';
-        textoFinal += (oGame.countExtra > 0) ? 'Y' : 'N';
-      } else {
-        textoFinal += ' ml ';
-        textoFinal += (oGame.countExtra > 0) ? teamAway : teamHome;
-      }
+      /////// EXTRA = ML (US) / BTTS (SOCCER) ///////////////////////////////////////////////////////////////////////////
+      if (oGame.countExtra.abs() > 2) {
+        GameBet gameBet = new GameBet();
+        gameBet.idSport = oGame.idSport;
+        gameBet.date = oGame.date;
+        gameBet.time = oGame.time;
+        gameBet.maxValue = oGame.countExtra.abs();
+        // MIN solo para orden sera 3y4 = 1, 5+ - 0
+        if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
+          gameBet.minValue = 1;
+        } else {
+          gameBet.minValue = 0;
+        }
 
-      textoFinal +=
-          '(${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
-      //Agregar a lista de bets
-      gameBet.label = textoFinal;
-      _listaBet.add(gameBet);
+        textoFinal = datoJuego + ' ';
+
+        if (esSoccer) {
+          gameBet.typeBet = TYPE_BET.BTTS;
+          textoFinal += ' btts ';
+          textoFinal += (oGame.countExtra > 0) ? 'Y' : 'N';
+        } else {
+          gameBet.typeBet = TYPE_BET.ML;
+          textoFinal += ' ml ';
+          textoFinal += (oGame.countExtra > 0) ? teamAway : teamHome;
+        }
+
+        textoFinal +=
+            ' (${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
+        //Agregar a lista de bets
+        gameBet.label = textoFinal;
+
+        if (esSoccer) {
+          if (this.filterTypeBet.isEmpty ||
+              this.filterTypeBet.contains(TYPE_BET.BTTS)) {
+            _listaBet.add(gameBet);
+          }
+        } else {
+          if (this.filterTypeBet.isEmpty ||
+              this.filterTypeBet.contains(TYPE_BET.ML)) {
+            _listaBet.add(gameBet);
+          }
+        }
+      }
     }
   }
 }

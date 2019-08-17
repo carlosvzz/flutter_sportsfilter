@@ -18,7 +18,9 @@ class ScreenFilters extends StatelessWidget {
                   icon: Icon(Icons.check),
                   label: Text("OK"),
                   color: Theme.of(context).accentColor,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
                 SizedBox(
                   width: 10.0,

@@ -1,4 +1,4 @@
-enum TYPE_BET { Main, OverUnder, Extra }
+enum TYPE_BET { ML, Spread, OverUnder, BTTS }
 enum TYPE_SPORTS { SOCCER, NFL, NBA, NHL, MLB }
 enum TIME_OF_DAY { All, Morning, Night }
 enum ORDER_BY { MaxValue, DateTime, TypeBet }

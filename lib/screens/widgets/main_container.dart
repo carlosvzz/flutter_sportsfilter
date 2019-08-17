@@ -19,7 +19,7 @@ class _MainContainerState extends State<MainContainer> {
   void initState() {
     super.initState();
     oGame = Provider.of<AppModel>(context, listen: false);
-    _listaJuegos = oGame.getGames();
+    //_listaJuegos = oGame.getGames();
   }
 
   @override
@@ -62,8 +62,11 @@ class _MainContainerState extends State<MainContainer> {
                 icon: Icon(Icons.filter_list),
                 label: Text("Filtros"),
                 color: Theme.of(context).accentColor,
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/filtros');
+                onPressed: () async {
+                  await Navigator.of(context).pushNamed('/filtros');
+                  setState(() {
+                    _listaJuegos = oGame.getGames();
+                  });
                 },
               ),
               RaisedButton.icon(
