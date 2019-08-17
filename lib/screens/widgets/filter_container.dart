@@ -32,7 +32,7 @@ class _FilterContainerState extends State<FilterContainer> {
       initialDate: currentDate,
       firstDate: currentDate.subtract(Duration(days: 30)),
       lastDate: currentDate.add(Duration(days: 30)),
-      //locale: const Locale("es", "ES"),
+      locale: const Locale("es", "ES"),
     );
 
     if (picked == null) {

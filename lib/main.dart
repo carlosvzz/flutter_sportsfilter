@@ -1,6 +1,7 @@
 // import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:sportsfilter/providers/app_model.dart';
@@ -38,15 +39,14 @@ class MyApp extends StatelessWidget {
             '/': (context) => ScreenHome(),
             '/filtros': (context) => ScreenFilters(),
           },
-
-          // localizationsDelegates: [
-          //   GlobalMaterialLocalizations.delegate,
-          //   GlobalWidgetsLocalizations.delegate,
-          // ],
-          // supportedLocales: [
-          //   const Locale('en'), // English
-          //   const Locale('es', 'MX'), // Spanish
-          // ],
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: [
+            const Locale('en'), // English
+            const Locale('es', 'MX'), // Spanish
+          ],
         ),
       ),
     );
