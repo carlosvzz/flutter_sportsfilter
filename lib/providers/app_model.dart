@@ -93,6 +93,17 @@ class AppModel with ChangeNotifier {
             return bet.label;
           }).toList();
           break;
+
+        case ORDER_BY.Sport:
+          var query = Collection(_listaBet)
+              .orderBy((f) => f.idSport)
+              .thenBy((f) => f.date)
+              .thenBy((f) => f.time);
+
+          listaFiltrada = query.asIterable().map((bet) {
+            return bet.label;
+          }).toList();
+          break;
       }
     }
 
@@ -125,7 +136,24 @@ class AppModel with ChangeNotifier {
     encabezado +=
         '\n Sports = ${this.filterSport.isEmpty ? "TODOS" : listaSport}';
 
-    return encabezado + '\n\n' + listaFiltrada.join('\n');
+    String detalle = '';
+    int contador = 0;
+    int vueltas = 0;
+    listaFiltrada.forEach((t) {
+      contador++;
+      detalle += t + '\n';
+
+      if (contador % 5 == 0) {
+        vueltas++;
+        detalle += '${"*" * 12} ${(vueltas * 5).toString()} ${"*" * 12} \n';
+      }
+    });
+
+    return encabezado + '\n\n' + detalle;
+  }
+
+  void _addGame(GameBet game) {
+    _listaBet.add(game);
   }
 
   void _revisarGame(Game oGame) {
@@ -278,12 +306,12 @@ class AppModel with ChangeNotifier {
             oGame.idSport.toLowerCase() == 'nfl') {
           if (this.filterTypeBet.isEmpty ||
               this.filterTypeBet.contains(TYPE_BET.Spread)) {
-            _listaBet.add(gameBet);
+            _addGame(gameBet);
           }
         } else {
           if (this.filterTypeBet.isEmpty ||
               this.filterTypeBet.contains(TYPE_BET.ML)) {
-            _listaBet.add(gameBet);
+            _addGame(gameBet);
           }
         }
       }
@@ -313,7 +341,7 @@ class AppModel with ChangeNotifier {
 
         if (this.filterTypeBet.isEmpty ||
             this.filterTypeBet.contains(TYPE_BET.OverUnder)) {
-          _listaBet.add(gameBet);
+          _addGame(gameBet);
         }
       }
 
@@ -351,12 +379,12 @@ class AppModel with ChangeNotifier {
         if (esSoccer) {
           if (this.filterTypeBet.isEmpty ||
               this.filterTypeBet.contains(TYPE_BET.BTTS)) {
-            _listaBet.add(gameBet);
+            _addGame(gameBet);
           }
         } else {
           if (this.filterTypeBet.isEmpty ||
               this.filterTypeBet.contains(TYPE_BET.ML)) {
-            _listaBet.add(gameBet);
+            _addGame(gameBet);
           }
         }
       }

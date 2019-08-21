@@ -72,7 +72,8 @@ ThemeData _myTheme() {
         title: TextStyle(
             fontSize: 30.0, fontStyle: FontStyle.italic, color: Colors.green),
         body1: TextStyle(
-          fontSize: 18.0,
+          fontSize: 17.0,
+          fontFamily: 'ShareTech',
         ),
         body2: TextStyle(
             fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white),
