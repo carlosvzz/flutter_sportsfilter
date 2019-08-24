@@ -19,7 +19,7 @@ class _MainContainerState extends State<MainContainer> {
   void initState() {
     super.initState();
     oGame = Provider.of<AppModel>(context, listen: false);
-    //_listaJuegos = oGame.getGames();
+    _listaJuegos = oGame.getGames();
   }
 
   @override

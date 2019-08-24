@@ -25,7 +25,7 @@ class AppModel with ChangeNotifier {
     filterSport = [];
     filterTypeBet = [];
     filterTimeofDay = TIME_OF_DAY.All;
-    filterOrderBy = ORDER_BY.MaxValue;
+    filterOrderBy = ORDER_BY.TypeBet;
     isLoading = false;
   }
 
