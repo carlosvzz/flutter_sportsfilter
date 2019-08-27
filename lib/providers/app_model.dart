@@ -51,7 +51,7 @@ class AppModel with ChangeNotifier {
   }
 
   Future<String> _filtrarLista(List<DocumentSnapshot> documentos) async {
-    List<String> listaFiltrada = [];
+    List<GameBet> listaFiltrada = [];
     _listaBet = [];
 
     // Revisar juegos validos
@@ -70,18 +70,14 @@ class AppModel with ChangeNotifier {
               .orderBy((f) => f.minValue)
               .thenByDescending((f) => f.maxValue);
 
-          listaFiltrada = query.asIterable().map((bet) {
-            return bet.label;
-          }).toList();
+          listaFiltrada = query.toList();
           break;
 
         case ORDER_BY.DateTime:
           var query = Collection(_listaBet)
               .orderBy((f) => f.date)
               .thenBy((f) => f.time);
-          listaFiltrada = query.asIterable().map((bet) {
-            return bet.label;
-          }).toList();
+          listaFiltrada = query.toList();
           break;
 
         case ORDER_BY.TypeBet:
@@ -89,9 +85,7 @@ class AppModel with ChangeNotifier {
               .orderBy((f) => enumToString(f.typeBet))
               .thenBy((f) => f.minValue)
               .thenByDescending((f) => f.maxValue);
-          listaFiltrada = query.asIterable().map((bet) {
-            return bet.label;
-          }).toList();
+          listaFiltrada = query.toList();
           break;
 
         case ORDER_BY.Sport:
@@ -100,15 +94,12 @@ class AppModel with ChangeNotifier {
               .thenBy((f) => f.date)
               .thenBy((f) => f.time);
 
-          listaFiltrada = query.asIterable().map((bet) {
-            return bet.label;
-          }).toList();
+          listaFiltrada = query.toList();
           break;
       }
     }
 
     numRegs = listaFiltrada.length;
-
     String listaBet = this
         .filterTypeBet
         .map((i) {
@@ -137,16 +128,26 @@ class AppModel with ChangeNotifier {
         '\n Sports = ${this.filterSport.isEmpty ? "TODOS" : listaSport}';
 
     String detalle = '';
-    int contador = 0;
-    int vueltas = 0;
-    listaFiltrada.forEach((t) {
-      contador++;
-      detalle += t + '\n';
+    String idSportAux = '';
+    String idTypeBetAux = '';
 
-      if (contador % 5 == 0) {
-        vueltas++;
-        detalle += '${"*" * 12} ${(vueltas * 5).toString()} ${"*" * 12} \n';
+    listaFiltrada.forEach((t) {
+      if (this.filterOrderBy == ORDER_BY.TypeBet) {
+        //Separar por Type Bet
+        if (idTypeBetAux != enumToString(t.typeBet)) {
+          idTypeBetAux = enumToString(t.typeBet);
+          detalle += '${"*" * 12} $idTypeBetAux ${"*" * 12} \n';
+        }
+      } else if (this.filterOrderBy == ORDER_BY.Sport) {
+        // Separar por Deporte
+        if (idSportAux != t.idSport) {
+          idSportAux = t.idSport;
+          detalle += '${"*" * 12} $idSportAux ${"*" * 12} \n';
+        }
       }
+
+      // Leyenda de bet
+      detalle += t.label + '\n';
     });
 
     return encabezado + '\n\n' + detalle;
@@ -180,6 +181,9 @@ class AppModel with ChangeNotifier {
       switch (oGame.idSport) {
         case 'NFL':
           continua = this.filterSport.contains(TYPE_SPORTS.NFL);
+          break;
+        case 'NCAAF':
+          continua = this.filterSport.contains(TYPE_SPORTS.NCAAF);
           break;
         case 'NBA':
           continua = this.filterSport.contains(TYPE_SPORTS.NBA);
@@ -267,7 +271,8 @@ class AppModel with ChangeNotifier {
         gameBet.minValue = minValue;
 
         if (oGame.idSport.toLowerCase() == 'nba' ||
-            oGame.idSport.toLowerCase() == 'nfl') {
+            oGame.idSport.toLowerCase() == 'nfl' ||
+            oGame.idSport.toLowerCase() == 'ncaaf') {
           etiquetaJuego = 'sp+/-';
           gameBet.typeBet = TYPE_BET.Spread;
         } else {
@@ -303,7 +308,8 @@ class AppModel with ChangeNotifier {
         gameBet.label = textoFinal;
 
         if (oGame.idSport.toLowerCase() == 'nba' ||
-            oGame.idSport.toLowerCase() == 'nfl') {
+            oGame.idSport.toLowerCase() == 'nfl' ||
+            oGame.idSport.toLowerCase() == 'ncaaf') {
           if (this.filterTypeBet.isEmpty ||
               this.filterTypeBet.contains(TYPE_BET.Spread)) {
             _addGame(gameBet);
