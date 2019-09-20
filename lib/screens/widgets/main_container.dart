@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:sportsfilter/providers/app_model.dart';
-import 'package:flutter_selectable_text/flutter_selectable_text.dart';
+//import 'package:flutter_selectable_text/flutter_selectable_text.dart';
 
 class MainContainer extends StatefulWidget {
   @override

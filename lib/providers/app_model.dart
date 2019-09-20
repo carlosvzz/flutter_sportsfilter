@@ -73,6 +73,15 @@ class AppModel with ChangeNotifier {
           listaFiltrada = query.toList();
           break;
 
+        case ORDER_BY.Draw:
+          var query = Collection(_listaBet)
+              .orderBy((f) => f.minValue)
+              .thenByDescending((f) => f.maxValue)
+              .take(20);
+
+          listaFiltrada = query.toList();
+          break;
+
         case ORDER_BY.DateTime:
           var query = Collection(_listaBet)
               .orderBy((f) => f.date)
@@ -176,23 +185,37 @@ class AppModel with ChangeNotifier {
       continua = (int.parse(oGame.time.substring(0, 2)) >= 14);
     }
 
+    // Solo mostrar si es hora actual o futura (la pasada ya no se muestra)
+    CustomDate _auxDate = CustomDate(DateTime.now());
+    if (continua && oGame.date == _auxDate.getToday) {
+      int horaActual = DateTime.now().hour;
+      continua = (int.parse(oGame.time.substring(0, 2)) >= horaActual);
+    }
+    /////////////////////////
+
     // Revisar si cumple con el Deporte
+    // Draw solo aplica para Soccer
     if (continua && this.filterSport.length > 0) {
       switch (oGame.idSport) {
         case 'NFL':
-          continua = this.filterSport.contains(TYPE_SPORTS.NFL);
+          continua = this.filterSport.contains(TYPE_SPORTS.NFL) &&
+              this.filterOrderBy != ORDER_BY.Draw;
           break;
         case 'NCAAF':
-          continua = this.filterSport.contains(TYPE_SPORTS.NCAAF);
+          continua = this.filterSport.contains(TYPE_SPORTS.NCAAF) &&
+              this.filterOrderBy != ORDER_BY.Draw;
           break;
         case 'NBA':
-          continua = this.filterSport.contains(TYPE_SPORTS.NBA);
+          continua = this.filterSport.contains(TYPE_SPORTS.NBA) &&
+              this.filterOrderBy != ORDER_BY.Draw;
           break;
         case 'NHL':
-          continua = this.filterSport.contains(TYPE_SPORTS.NHL);
+          continua = this.filterSport.contains(TYPE_SPORTS.NHL) &&
+              this.filterOrderBy != ORDER_BY.Draw;
           break;
         case 'MLB':
-          continua = this.filterSport.contains(TYPE_SPORTS.MLB);
+          continua = this.filterSport.contains(TYPE_SPORTS.MLB) &&
+              this.filterOrderBy != ORDER_BY.Draw;
           break;
         default:
           //Soccer
@@ -220,29 +243,38 @@ class AppModel with ChangeNotifier {
       hayDifWin = false;
 
       if (esSoccer) {
-        // DIFERENCIA CON MAS DE +2 VOTOS VS EL RESTO
-        // Gana visitante
-        if (oGame.countAway - (oGame.countHome + oGame.countDraw) > 2) {
-          teamGanador = 2;
-          hayDifWin = true;
-          maxValue = oGame.countAway;
-          minValue = oGame.countHome + oGame.countDraw;
-        }
-        // Gana Local
-        if (!hayDifWin &&
-            (oGame.countHome - (oGame.countAway + oGame.countDraw) > 2)) {
-          teamGanador = 1;
-          hayDifWin = true;
-          maxValue = oGame.countHome;
-          minValue = oGame.countAway + oGame.countDraw;
-        }
-        // EMPATE
-        if (!hayDifWin &&
-            (oGame.countDraw - (oGame.countAway + oGame.countHome) > 2)) {
+// Draw pondrá los empates (diferencia por lo menos del doble, o sea +-6)
+        if (this.filterOrderBy == ORDER_BY.Draw) {
           teamGanador = 0;
-          hayDifWin = true;
           maxValue = oGame.countDraw;
           minValue = oGame.countHome + oGame.countDraw;
+
+          hayDifWin = ((maxValue - minValue).abs() <= 6) && maxValue > 3;
+        } else {
+          // DIFERENCIA CON MAS DE +2 VOTOS VS EL RESTO
+          // Gana visitante
+          if (oGame.countAway - (oGame.countHome + oGame.countDraw) > 2) {
+            teamGanador = 2;
+            hayDifWin = true;
+            maxValue = oGame.countAway;
+            minValue = oGame.countHome + oGame.countDraw;
+          }
+          // Gana Local
+          if (!hayDifWin &&
+              (oGame.countHome - (oGame.countAway + oGame.countDraw) > 2)) {
+            teamGanador = 1;
+            hayDifWin = true;
+            maxValue = oGame.countHome;
+            minValue = oGame.countAway + oGame.countDraw;
+          }
+          // EMPATE
+          if (!hayDifWin &&
+              (oGame.countDraw - (oGame.countAway + oGame.countHome) > 2)) {
+            teamGanador = 0;
+            hayDifWin = true;
+            maxValue = oGame.countDraw;
+            minValue = oGame.countHome + oGame.countDraw;
+          }
         }
       } else {
 //US Games > Gana cualquiera con +2 diferencia (visitante o local)
@@ -345,8 +377,9 @@ class AppModel with ChangeNotifier {
         //Agregar a lista de bets
         gameBet.label = textoFinal;
 
-        if (this.filterTypeBet.isEmpty ||
-            this.filterTypeBet.contains(TYPE_BET.OverUnder)) {
+        if (this.filterOrderBy != ORDER_BY.Draw &&
+            (this.filterTypeBet.isEmpty ||
+                this.filterTypeBet.contains(TYPE_BET.OverUnder))) {
           _addGame(gameBet);
         }
       }
@@ -382,15 +415,17 @@ class AppModel with ChangeNotifier {
         //Agregar a lista de bets
         gameBet.label = textoFinal;
 
-        if (esSoccer) {
-          if (this.filterTypeBet.isEmpty ||
-              this.filterTypeBet.contains(TYPE_BET.BTTS)) {
-            _addGame(gameBet);
-          }
-        } else {
-          if (this.filterTypeBet.isEmpty ||
-              this.filterTypeBet.contains(TYPE_BET.ML)) {
-            _addGame(gameBet);
+        if (this.filterOrderBy != ORDER_BY.Draw) {
+          if (esSoccer) {
+            if (this.filterTypeBet.isEmpty ||
+                this.filterTypeBet.contains(TYPE_BET.BTTS)) {
+              _addGame(gameBet);
+            }
+          } else {
+            if (this.filterTypeBet.isEmpty ||
+                this.filterTypeBet.contains(TYPE_BET.ML)) {
+              _addGame(gameBet);
+            }
           }
         }
       }
