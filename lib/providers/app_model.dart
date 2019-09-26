@@ -25,7 +25,7 @@ class AppModel with ChangeNotifier {
     filterSport = [];
     filterTypeBet = [];
     filterTimeofDay = TIME_OF_DAY.All;
-    filterOrderBy = ORDER_BY.TypeBet;
+    filterOrderBy = ORDER_BY.MaxValue;
     isLoading = false;
   }
 
@@ -180,9 +180,9 @@ class AppModel with ChangeNotifier {
     //Revisar si cumple con Tiempo
     continua = true;
     if (this.filterTimeofDay == TIME_OF_DAY.Morning) {
-      continua = (int.parse(oGame.time.substring(0, 2)) < 14);
+      continua = (int.parse(oGame.time.substring(0, 2)) < 15);
     } else if (this.filterTimeofDay == TIME_OF_DAY.Night) {
-      continua = (int.parse(oGame.time.substring(0, 2)) >= 14);
+      continua = (int.parse(oGame.time.substring(0, 2)) >= 15);
     }
 
     // Solo mostrar si es hora actual o futura (la pasada ya no se muestra)
