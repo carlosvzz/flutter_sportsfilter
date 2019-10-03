@@ -227,15 +227,18 @@ class AppModel with ChangeNotifier {
       esSoccer = oGame.idSport.toLowerCase().contains('soccer');
       etiquetaJuego =
           esSoccer ? oGame.idSport.replaceAll('Soccer', 'FB') : oGame.idSport;
+      if (etiquetaJuego.length > 7) {
+        etiquetaJuego = etiquetaJuego.substring(0, 7);
+      }
 
       String teamAway = oGame.awayTeam.abbreviation.padRight(3);
       String teamHome = oGame.homeTeam.abbreviation.padRight(3);
 
       if (esSoccer) {
-        datoJuego = '$etiquetaJuego (${oGame.time}) $teamHome v $teamAway > ';
+        datoJuego = '$etiquetaJuego ${oGame.time} $teamHome v $teamAway >';
       } else {
         // US Games
-        datoJuego = '$etiquetaJuego (${oGame.time}) $teamAway @ $teamHome >';
+        datoJuego = '$etiquetaJuego ${oGame.time} $teamAway @ $teamHome >';
       }
 
       ///////////////////////// MAIN //////////////////////////////
@@ -335,7 +338,7 @@ class AppModel with ChangeNotifier {
             textoFinal += teamHome;
           }
         }
-        textoFinal += ' (${maxValue.toString()}.${minValue.toString()}) | ';
+        textoFinal += ' (${maxValue.toString()}.${minValue.toString()})';
         //Agregar a lista de bets
         gameBet.label = textoFinal;
 
@@ -371,9 +374,9 @@ class AppModel with ChangeNotifier {
         gameBet.typeBet = TYPE_BET.OverUnder;
 
         textoFinal = datoJuego + ' ';
-        textoFinal += (oGame.countOverUnder > 0) ? 'over ' : 'under ';
+        textoFinal += (oGame.countOverUnder > 0) ? 'over' : 'under';
         textoFinal +=
-            ' (${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
+            ' (${gameBet.maxValue.toString()}.${gameBet.minValue.toString()})';
         //Agregar a lista de bets
         gameBet.label = textoFinal;
 
@@ -402,16 +405,16 @@ class AppModel with ChangeNotifier {
 
         if (esSoccer) {
           gameBet.typeBet = TYPE_BET.BTTS;
-          textoFinal += ' btts ';
+          textoFinal += 'btts ';
           textoFinal += (oGame.countExtra > 0) ? 'Y' : 'N';
         } else {
           gameBet.typeBet = TYPE_BET.ML;
-          textoFinal += ' ml ';
+          textoFinal += 'ml ';
           textoFinal += (oGame.countExtra > 0) ? teamAway : teamHome;
         }
 
         textoFinal +=
-            ' (${gameBet.maxValue.toString()}.${gameBet.minValue.toString()}) | ';
+            ' (${gameBet.maxValue.toString()}.${gameBet.minValue.toString()})';
         //Agregar a lista de bets
         gameBet.label = textoFinal;
 
