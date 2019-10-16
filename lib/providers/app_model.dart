@@ -67,7 +67,7 @@ class AppModel with ChangeNotifier {
       switch (this.filterOrderBy) {
         case ORDER_BY.MaxValue:
           var query = Collection(_listaBet)
-              .orderBy((f) => f.minValue)
+              .orderByDescending((f) => f.maxValue - f.minValue)
               .thenByDescending((f) => f.maxValue);
 
           listaFiltrada = query.toList();
@@ -75,7 +75,7 @@ class AppModel with ChangeNotifier {
 
         case ORDER_BY.Draw:
           var query = Collection(_listaBet)
-              .orderBy((f) => f.minValue)
+              .orderByDescending((f) => f.maxValue - f.minValue)
               .thenByDescending((f) => f.maxValue)
               .take(20);
 
@@ -92,7 +92,7 @@ class AppModel with ChangeNotifier {
         case ORDER_BY.TypeBet:
           var query = Collection(_listaBet)
               .orderBy((f) => enumToString(f.typeBet))
-              .thenBy((f) => f.minValue)
+              .thenByDescending((f) => f.maxValue - f.minValue)
               .thenByDescending((f) => f.maxValue);
           listaFiltrada = query.toList();
           break;
@@ -364,12 +364,7 @@ class AppModel with ChangeNotifier {
         gameBet.date = oGame.date;
         gameBet.time = oGame.time;
         gameBet.maxValue = oGame.countOverUnder.abs();
-        // MIN solo para orden sera 3y4 = 1, 5+ - 0
-        if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
-          gameBet.minValue = 1;
-        } else {
-          gameBet.minValue = 0;
-        }
+        gameBet.minValue = 0;
 
         gameBet.typeBet = TYPE_BET.OverUnder;
 
@@ -394,12 +389,7 @@ class AppModel with ChangeNotifier {
         gameBet.date = oGame.date;
         gameBet.time = oGame.time;
         gameBet.maxValue = oGame.countExtra.abs();
-        // MIN solo para orden sera 3y4 = 1, 5+ - 0
-        if (gameBet.maxValue == 3 || gameBet.maxValue == 4) {
-          gameBet.minValue = 1;
-        } else {
-          gameBet.minValue = 0;
-        }
+        gameBet.minValue = 0;
 
         textoFinal = datoJuego + ' ';
 
