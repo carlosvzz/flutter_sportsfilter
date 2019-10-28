@@ -11,8 +11,8 @@ dependencies:
 
   cupertino_icons: ^0.1.2
   provider: ^3.0.0+1
-  cloud_firestore: ^0.12.7
-  firebase_auth: ^0.11.1+8
+  # cloud_firestore: ^0.12.7
+  # firebase_auth: ^0.11.1+8
   # Mostrar Toast Msg
   overlay_support: ^1.0.0
   # Para mostrar HUD (ventanas en espera)
@@ -21,6 +21,11 @@ dependencies:
   queries: ^0.1.12
   # Seleccion de texto (copy/paste)
   flutter_selectable_text: ^0.3.1
+  # Base de datos local
+  sqflite:
+  # Helper para rutas de sistema
+  path:
+  path_provider: ^1.4.0
   # Localizacion para idioma y fechas
   flutter_localizations:
     sdk: flutter
